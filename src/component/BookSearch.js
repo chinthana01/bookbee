@@ -1,13 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import BookGrid from "./BookGrid";
-import './BookSearch.css';
+import "./BookSearch.css";
+import _ from "lodash";
 
 function BookSearch() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const inputRef = useRef();
 
-  const handleInputChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
+  useEffect(() => {
+    const debounceSearchTerm = _.debounce(() => {
+      setDebouncedSearchTerm(inputRef.current.value);
+    }, 500);
+
+    inputRef.current.addEventListener("input", debounceSearchTerm);
+
+    return () => {
+      inputRef.current.removeEventListener("input", debounceSearchTerm);
+    };
+  }, []);
+
+  useEffect(() => {
+    setSearchTerm(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   return (
     <div className="book-search">
@@ -15,8 +30,7 @@ function BookSearch() {
       <input
         type="text"
         placeholder="Search for books"
-        value={searchTerm}
-        onChange={handleInputChange}
+        ref={inputRef}
       />
       <BookGrid searchTerm={searchTerm} />
     </div>
@@ -24,3 +38,4 @@ function BookSearch() {
 }
 
 export default BookSearch;
+

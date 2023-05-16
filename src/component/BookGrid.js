@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import BookCard from "./BookCard";
 import AudioPlayer from "./AudioPlayer";
@@ -13,15 +14,29 @@ function BookGrid({ searchTerm }) {
   useEffect(() => {
     setBooks([]);
     setPage(1);
+    // setHasMore(false);
   }, [searchTerm]);
 
   useEffect(() => {
     const fetchBooks = async () => {
-      const response = await fetch(
-        `https://gutendex.com/books?search=${searchTerm}&page=${page}`
-      );
+      let url = "";
+      const itemsPerPage = 32; // Number of books to display per page
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      
+      if (searchTerm.trim() !== "") {
+        url = `https://gutendex.com/books?search=${searchTerm}&start_index=${startIndex}&end_index=${endIndex}`;
+      } else {
+        url = `https://gutendex.com/books?start_index=${startIndex}&end_index=${endIndex}`;
+      }
+      
+      const response = await fetch(url);
       const data = await response.json();
-      setBooks((prevBooks) => [...prevBooks, ...data.results]);
+      if (page === 1) {
+        setBooks(data.results);
+      } else {
+        setBooks((prevBooks) => [...prevBooks, ...data.results]);
+      }
       setHasMore(data.results.length > 0);
     };
 
